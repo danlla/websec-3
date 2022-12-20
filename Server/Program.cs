@@ -1,9 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using Server.DAL;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<DataContext>(options =>
+options.UseSqlite(builder.Configuration.GetConnectionString("Connection"))
+);
+
 
 var app = builder.Build();
 
