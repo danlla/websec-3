@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Server.DAL;
 
@@ -15,17 +15,21 @@ namespace Server.Controllers
             _context = context;
         }
 
+        [Authorize]
         [HttpGet]
         [Route("users")]
         public IActionResult GetUsers()
         {
+            
             return Ok(_context.Users.ToList());
         }
 
+        [Authorize]
         [HttpGet]
-        [Route("subs/{login}")]
-        public IActionResult GetSubs(string login)
+        [Route("subs")]
+        public IActionResult GetSubs()
         {
+            var login = User.Identity!.Name;
             var result = from u in _context.Users
                          join sub in _context.Subscriptions on u.UserId equals sub.UserId
                          where u.Username == login
