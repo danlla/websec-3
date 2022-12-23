@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {Routes, Route, Navigate} from 'react-router-dom'
 import {AuthRoutes, PublicRoutes} from "../Routes"
 import {REGISTRATION_ROUTE} from "../utils/consts"
