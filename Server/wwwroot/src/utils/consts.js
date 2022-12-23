@@ -1,0 +1,6 @@
+export const LOGIN_ROUTE = '/login'
+export const REGISTRATION_ROUTE = '/registration'
+export const NEWSFEED_ROUTE = '/newsfeed'
+export const PROFILE_ROUTE = '/profile'
+export const SUBS_ROUTE = '/subs'
+export const OTHER_USER_PROFILE_ROUTE = '/other_user_profile'
