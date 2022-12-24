@@ -20,8 +20,20 @@ namespace Server.Controllers
         [Route("users")]
         public IActionResult GetUsers()
         {
-            
+
             return Ok(_context.Users.ToList());
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("profile")]
+        public IActionResult GetProfile()
+        {
+            var id = Convert.ToInt32(User.Claims.First().Value);
+            var posts = from p in _context.Posts
+                        where p.UserId == id
+                        select p;
+            return Ok(posts);
         }
 
         [Authorize]
@@ -29,20 +41,20 @@ namespace Server.Controllers
         [Route("subs")]
         public IActionResult GetSubs()
         {
-            var login = User.Identity!.Name;
+            var id = Convert.ToInt32(User.Claims.First().Value);
             var result = from u in _context.Users
                          join sub in _context.Subscriptions on u.UserId equals sub.UserId
-                         where u.Username == login
-                         select new {sub.SubUser};
+                         where u.UserId == id
+                         select new { sub.SubUser };
 
-            if (result == null)
+            if (!result.Any())
                 return NotFound();
 
             return Ok(result);
         }
 
         [HttpPost]
-        [Route("posts")]
+        [Route("add_post")]
 
         public IActionResult AddPost(string data, int id)
         {
@@ -61,18 +73,82 @@ namespace Server.Controllers
         [HttpGet]
         [Route("subs_post")]
 
-        public IActionResult GetPost(string login)
+        public IActionResult SubsPost(int id)
         {
             var result = from u in _context.Users
                          join sub in _context.Subscriptions on u.UserId equals sub.UserId
                          join p in _context.Posts on sub.SubUserId equals p.UserId
-                         where u.Username == login
+                         where u.UserId == id
+                         orderby p.TimeCreate descending
                          select new { p.User, p.TimeCreate, p.Data, p.LikesCount };
 
             if (result == null)
                 return NotFound();
 
             return Ok(result);
+        }
+
+        [HttpGet]
+        [Route("random_post")]
+        public IActionResult RandomPost()
+        {
+            var result = from p in _context.Posts
+                         orderby p.TimeCreate descending
+                         select new { p.PostId, p.User!.Username, p.TimeCreate, p.Data, p.LikesCount };
+
+            if (!result.Any())
+                return NotFound();
+
+            return Ok(result.Take(50));
+        }
+
+        [HttpPost]
+        [Route("like_post")]
+        public IActionResult LikePost(int idPost, int idUser)
+        {
+            var check = from l in _context.Likes
+                        where l.UserId == idUser && l.PostID == idPost
+                        select l;
+
+            if (check.Any())
+                return BadRequest();
+
+            _context.Likes.Add(new Models.Like { PostID = idPost, UserId = idUser });
+            
+            var post = from p in _context.Posts
+                       where p.PostId == idPost
+                       select p;
+
+            post.First().LikesCount += 1;
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("comments")]
+        public IActionResult CommentsPost(int postId)
+        {
+            var result = from c in _context.Comments
+                         where c.PostID==postId
+                         select new { c.PostID, c.Data, c.TimeCreate, c.User!.Username };
+
+            if (!result.Any())
+                return NotFound();
+
+            return Ok(result.Take(50));
+        }
+
+        [HttpPost]
+        [Route("comment_post")]
+        public IActionResult CommentPost(int idPost, int idUser, string data)
+        {
+            _context.Comments.Add(new Models.Comment { UserId = idUser, Data = data, PostID = idPost, TimeCreate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") });
+
+            _context.SaveChanges();
+
+            return Ok();
         }
     }
 }
