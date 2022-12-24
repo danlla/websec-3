@@ -1,14 +1,15 @@
 import Button from "react-bootstrap/Button";
 import React, { useState,useContext } from 'react';
 import {Card, Container, Form} from "react-bootstrap";
-import { REGISTRATION_ROUTE, LOGIN_ROUTE } from "../utils/consts";
-import { NavLink, useLocation } from "react-router-dom";
+import { REGISTRATION_ROUTE, LOGIN_ROUTE, PROFILE_ROUTE } from "../utils/consts";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {observer} from "mobx-react-lite";
 import {Context} from "../index";
 
 const Auth = observer(() => {
   const {user} = useContext(Context)
   const location = useLocation()
+  const navigate = useNavigate()
   const isLogin = location.pathname === LOGIN_ROUTE
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
@@ -18,18 +19,23 @@ const Auth = observer(() => {
   async function clicked(){
     if (isLogin) {
       let res = await fetch(`https://localhost:7061/login?username=${username}&password=${password}`,{method: 'POST'})
+      if (res.status === 404){
+        setError("this login doesn't exist")
+      }
       if (res.status === 400){
-        setError("error")
+        setError("invalid login")
       }
       let token = await res.text()
       user.setToken(token)
+      user.setIsAuth(true)
       console.log(user.token)
+      navigate(PROFILE_ROUTE)
     }
     else {
       let res = await fetch(`https://localhost:7061/register?email=${email}&username=${username}&password=${password}`,{method: 'POST'}) 
       console.log(res)
       if (res.status === 400){
-        setError("error")
+        setError("invalid login")
       }
     }
   }
@@ -71,18 +77,19 @@ const Auth = observer(() => {
               <div>
                 Есть аккаунт? <NavLink to = {LOGIN_ROUTE}>Войдите!</NavLink>
               </div>
-              }
-              <div>
-                {error}
-              </div>
+            }
+
               <Button variant={"outline-success"} onClick={clicked}>
                 {isLogin ? 'Войти' : 'Регистрация'}
               </Button>
           </Form>
+          <div className="d-flex justify-content-between mt-3 pl-3 pr-3">
+                {error}
+            </div>
         </Form>
       </Card>
     </Container>
   );
 });
   
-  export default Auth;
+export default Auth;
