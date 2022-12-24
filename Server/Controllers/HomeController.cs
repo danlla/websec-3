@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Server.DAL;
 using System.IdentityModel.Tokens.Jwt;
@@ -29,8 +30,9 @@ namespace Server.Controllers
             if (user.Count() == 0)
                 return NotFound();
 
-            
-            if (user.First().PasswordHash != password)
+            var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(password, new byte[] { 0xAA, 0xBB, 0xCC, 0xDD }, KeyDerivationPrf.HMACSHA256, 10000, 64));
+
+            if (user.First().PasswordHash != hashed)
                 return BadRequest();
 
             var handler = new JwtSecurityTokenHandler();
@@ -40,7 +42,7 @@ namespace Server.Controllers
 
             //var identity = new ClaimsIdentity(new GenericIdentity(username),
             //new[] { new Claim("user_id", user.First().UserId.ToString()) });
-            var identity = new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.NameIdentifier, username) });
+            var identity = new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.NameIdentifier, user.First().UserId.ToString()) });
             var token = handler.CreateJwtSecurityToken(subject: identity,
                                                        issuer: "localhost:7061",
                                                        signingCredentials: signingCredentials,
@@ -58,7 +60,9 @@ namespace Server.Controllers
             if (user.Count() != 0)
                 return BadRequest();
 
-            _dataContext.Users.Add(new Models.User { Username = username, Email = email, PasswordHash = password});
+            var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(password, new byte[] { 0xAA, 0xBB, 0xCC, 0xDD }, KeyDerivationPrf.HMACSHA256, 10000, 64));
+
+            _dataContext.Users.Add(new Models.User { Username = username, Email = email, PasswordHash = hashed});
             _dataContext.SaveChanges();
             return Ok();
         }
