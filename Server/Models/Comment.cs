@@ -10,7 +10,7 @@ namespace Server.Models
         [Column("commentId")]
         public int CommentId { get; set; }
         [Column("postId")]
-        public int PostID { get; set; }
+        public int PostId { get; set; }
         public Post? Post { get; set; }
         [Column("userId")]
         public int UserId { get; set; }

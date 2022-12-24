@@ -156,18 +156,20 @@ namespace Server.Controllers
             return Ok(result.Take(50));
         }
 
+        [Authorize]
         [HttpPost]
         [Route("like_post")]
-        public IActionResult LikePost(int idPost, int idUser)
+        public IActionResult LikePost(int idPost)
         {
+            var id = Convert.ToInt32(User.Claims.First().Value);
             var check = from l in _context.Likes
-                        where l.UserId == idUser && l.PostID == idPost
+                        where l.UserId == id && l.PostID == idPost
                         select l;
 
             if (check.Any())
                 return BadRequest();
 
-            _context.Likes.Add(new Models.Like { PostID = idPost, UserId = idUser });
+            _context.Likes.Add(new Models.Like { PostID = idPost, UserId = id });
             
             var post = from p in _context.Posts
                        where p.PostId == idPost
@@ -180,13 +182,14 @@ namespace Server.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpGet]
         [Route("comments")]
         public IActionResult CommentsPost(int postId)
         {
             var result = from c in _context.Comments
-                         where c.PostID==postId
-                         select new { c.PostID, c.Data, c.TimeCreate, c.User!.Username };
+                         where c.PostId==postId
+                         select new { c.PostId, c.Data, c.TimeCreate, c.User!.Username };
 
             if (!result.Any())
                 return NotFound();
@@ -194,15 +197,17 @@ namespace Server.Controllers
             return Ok(result.Take(50));
         }
 
+        [Authorize]
         [HttpPost]
         [Route("comment_post")]
-        public IActionResult CommentPost(int idPost, int idUser, string data)
+        public IActionResult CommentPost(int postId, string data)
         {
-            _context.Comments.Add(new Models.Comment { UserId = idUser, Data = data, PostID = idPost, TimeCreate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") });
+            var id = Convert.ToInt32(User.Claims.First().Value);
+            _context.Comments.Add(new Models.Comment { UserId = id, Data = data, PostId = postId, TimeCreate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") });
 
             _context.SaveChanges();
 
             return Ok();
-        }
+        }0
     }
 }
