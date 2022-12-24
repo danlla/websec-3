@@ -20,8 +20,10 @@ namespace Server.Controllers
         [Route("users")]
         public IActionResult GetUsers()
         {
+            var result = from u in _context.Users
+                         select new { u.UserId, u.Username };
 
-            return Ok(_context.Users.ToList());
+            return Ok(result);
         }
 
         [Authorize]
@@ -38,14 +40,26 @@ namespace Server.Controllers
 
         [Authorize]
         [HttpGet]
+        [Route("username")]
+        public IActionResult Username()
+        {
+            var id = Convert.ToInt32(User.Claims.First().Value);
+            var user = from u in _context.Users
+                        where u.UserId == id
+                        select u;
+            return Ok(user.First().Username);
+        }
+
+        [Authorize]
+        [HttpGet]
         [Route("subs")]
-        public IActionResult GetSubs()
+        public IActionResult Subs()
         {
             var id = Convert.ToInt32(User.Claims.First().Value);
             var result = from u in _context.Users
                          join sub in _context.Subscriptions on u.UserId equals sub.UserId
                          where u.UserId == id
-                         select new { sub.SubUser };
+                         select new { sub.SubUser!.UserId, sub.SubUser.Username };
 
             if (!result.Any())
                 return NotFound();
@@ -53,11 +67,31 @@ namespace Server.Controllers
             return Ok(result);
         }
 
+        [Authorize]
+        [HttpPost]
+        [Route("subscribe")]
+        public IActionResult Subscribe(int idSub)
+        {
+            var id = Convert.ToInt32(User.Claims.First().Value);
+            var result = from s in _context.Subscriptions
+                         where s.UserId == id && s.SubUserId == idSub
+                         select s;
+
+            if (result.Any())
+                return BadRequest();
+
+            _context.Subscriptions.Add(new Models.Subscription { UserId = id, SubUserId = idSub });
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [Authorize]
         [HttpPost]
         [Route("add_post")]
-
-        public IActionResult AddPost(string data, int id)
+        public IActionResult AddPost(string data)
         {
+            var id = Convert.ToInt32(User.Claims.First().Value);
             _context.Posts.Add(new Models.Post
             {
                 Data = data,
@@ -70,17 +104,19 @@ namespace Server.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpGet]
-        [Route("subs_post")]
+        [Route("subs_posts")]
 
-        public IActionResult SubsPost(int id)
+        public IActionResult SubsPosts()
         {
+            var id = Convert.ToInt32(User.Claims.First().Value);
             var result = from u in _context.Users
                          join sub in _context.Subscriptions on u.UserId equals sub.UserId
                          join p in _context.Posts on sub.SubUserId equals p.UserId
                          where u.UserId == id
                          orderby p.TimeCreate descending
-                         select new { p.User, p.TimeCreate, p.Data, p.LikesCount };
+                         select new { p.User!.UserId, p.User.Username, p.TimeCreate, p.Data, p.LikesCount };
 
             if (result == null)
                 return NotFound();
@@ -88,6 +124,24 @@ namespace Server.Controllers
             return Ok(result);
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("user_posts")]
+        public IActionResult UserPosts(int idUser)
+        {
+            var id = Convert.ToInt32(User.Claims.First().Value);
+            var result = from p in _context.Posts
+                         where p.UserId == id
+                         orderby p.TimeCreate descending
+                         select new { p.User!.UserId, p.User.Username, p.TimeCreate, p.Data, p.LikesCount };
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+
+        [Authorize]
         [HttpGet]
         [Route("random_post")]
         public IActionResult RandomPost()
