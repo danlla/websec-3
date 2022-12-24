@@ -3,8 +3,9 @@ import {Routes, Route, Navigate} from 'react-router-dom'
 import {AuthRoutes, PublicRoutes} from "../Routes"
 import {REGISTRATION_ROUTE} from "../utils/consts"
 import {Context} from "../index";
+import {observer} from "mobx-react-lite";
 
-const AppRouter = () => {
+const AppRouter = observer(() => {
     const {user} = useContext(Context)
 
     console.log(user)
@@ -19,6 +20,6 @@ const AppRouter = () => {
             <Route path='*' element={<Navigate to={REGISTRATION_ROUTE}/>} />
         </Routes>
     );
-  };
+  });
   
   export default AppRouter;
