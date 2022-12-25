@@ -29,11 +29,22 @@ namespace Server.Controllers
         [Authorize]
         [HttpGet]
         [Route("profile")]
-        public IActionResult GetProfile()
+        public IActionResult Profile()
         {
             var id = Convert.ToInt32(User.Claims.First().Value);
             var posts = from p in _context.Posts
                         where p.UserId == id
+                        select new { p.Data, p.TimeCreate };
+            return Ok(posts);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("other_profile")]
+        public IActionResult OtherProfile(int userID)
+        {
+            var posts = from p in _context.Posts
+                        where p.UserId == userID
                         select p;
             return Ok(posts);
         }
@@ -47,6 +58,17 @@ namespace Server.Controllers
             var user = from u in _context.Users
                         where u.UserId == id
                         select u;
+            return Ok(user.First().Username);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("other_username")]
+        public IActionResult Username(int userId)
+        {
+            var user = from u in _context.Users
+                       where u.UserId == userId
+                       select u;
             return Ok(user.First().Username);
         }
 
@@ -148,6 +170,21 @@ namespace Server.Controllers
         {
             var result = from p in _context.Posts
                          orderby p.TimeCreate descending
+                         select new { p.PostId, p.User!.Username, p.TimeCreate, p.Data, p.LikesCount };
+
+            if (!result.Any())
+                return NotFound();
+
+            return Ok(result.Take(50));
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("post")]
+        public IActionResult Post(int postId)
+        {
+            var result = from p in _context.Posts
+                         where p.PostId == postId
                          select new { p.PostId, p.User!.Username, p.TimeCreate, p.Data, p.LikesCount };
 
             if (!result.Any())
