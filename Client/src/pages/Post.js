@@ -19,7 +19,8 @@ const Post = observer(() => {
   }
 
   useEffect(() => {
-    fetch(`https://localhost:7061/api/data/comments?postId=${id}`,{method: 'GET', headers:{'Authorization': 'Bearer ' + user.token}})
+    setInterval(() => {
+      fetch(`https://localhost:7061/api/data/comments?postId=${id}`,{method: 'GET', headers:{'Authorization': 'Bearer ' + user.token}})
     .then(res => res.json())
     .then(
       (result) => {
@@ -33,7 +34,8 @@ const Post = observer(() => {
         setPost(result);
       },
     )
-  })
+    }, 500)
+  }, [])
     return (
         <div>
             {post && <Card className="p-4">
