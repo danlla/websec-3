@@ -34,6 +34,7 @@ namespace Server.Controllers
             var id = Convert.ToInt32(User.Claims.First().Value);
             var posts = from p in _context.Posts
                         where p.UserId == id
+                        orderby p.TimeCreate descending
                         select new { p.Data, p.TimeCreate };
             return Ok(posts);
         }
@@ -41,10 +42,11 @@ namespace Server.Controllers
         [Authorize]
         [HttpGet]
         [Route("other_profile")]
-        public IActionResult OtherProfile(int userID)
+        public IActionResult OtherProfile(int userId)
         {
             var posts = from p in _context.Posts
-                        where p.UserId == userID
+                        where p.UserId == userId
+                        orderby p.TimeCreate descending
                         select p;
             return Ok(posts);
         }
@@ -168,9 +170,11 @@ namespace Server.Controllers
         [Route("random_post")]
         public IActionResult RandomPost()
         {
+            var id = Convert.ToInt32(User.Claims.First().Value);
             var result = from p in _context.Posts
+                         where p.UserId != id
                          orderby p.TimeCreate descending
-                         select new { p.PostId, p.User!.Username, p.TimeCreate, p.Data, p.LikesCount };
+                         select new { p.PostId, p.UserId, p.User!.Username, p.TimeCreate, p.Data, p.LikesCount };
 
             if (!result.Any())
                 return NotFound();
@@ -190,7 +194,7 @@ namespace Server.Controllers
             if (!result.Any())
                 return NotFound();
 
-            return Ok(result.Take(50));
+            return Ok(result.First());
         }
 
         [Authorize]
