@@ -15,5 +15,9 @@ namespace Server.Models
         public string? Email { get; set; }
         [Column("passwordHash")]
         public string? PasswordHash { get; set; }
+        [Column("confirmedEmail")]
+        public int ConfirmedEmail { get; set; }
+        [Column("code")]
+        public string? Code { get; set; }
     }
 }

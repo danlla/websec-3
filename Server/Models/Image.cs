@@ -13,6 +13,6 @@ namespace Server.Models
         public int PostID { get; set; }
         public Post? Post { get; set; }
         [Column("path")]
-        public int Path { get; set; }
+        public string? Path { get; set; }
     }
 }
