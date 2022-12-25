@@ -36,7 +36,7 @@ namespace Server.Controllers
             var posts = from p in _context.Posts
                         where p.UserId == id
                         orderby p.TimeCreate descending
-                        select new { p.Data, p.TimeCreate };
+                        select new { p.PostId, p.Data, p.TimeCreate, p.LikesCount };
             return Ok(posts);
         }
 
@@ -48,7 +48,7 @@ namespace Server.Controllers
             var posts = from p in _context.Posts
                         where p.UserId == userId
                         orderby p.TimeCreate descending
-                        select p;
+                        select new { p.PostId, p.Data, p.TimeCreate, p.LikesCount };
             return Ok(posts);
         }
 
@@ -142,7 +142,7 @@ namespace Server.Controllers
                          join p in _context.Posts on sub.SubUserId equals p.UserId
                          where u.UserId == id
                          orderby p.TimeCreate descending
-                         select new { p.User!.UserId, p.User.Username, p.TimeCreate, p.Data, p.LikesCount };
+                         select new { p.User!.UserId, p.PostId, p.User.Username, p.TimeCreate, p.Data, p.LikesCount };
 
             if (result == null)
                 return NotFound();
@@ -159,7 +159,7 @@ namespace Server.Controllers
             var result = from p in _context.Posts
                          where p.UserId == id
                          orderby p.TimeCreate descending
-                         select new { p.User!.UserId, p.User.Username, p.TimeCreate, p.Data, p.LikesCount };
+                         select new { p.PostId, p.User!.UserId, p.User.Username, p.TimeCreate, p.Data, p.LikesCount };
 
             if (result == null)
                 return NotFound();
@@ -227,7 +227,7 @@ namespace Server.Controllers
                        where p.PostId == idPost
                        select p;
 
-            post.First().LikesCount += exist?1:-1;
+            post.First().LikesCount += exist?-1:1;
 
             _context.SaveChanges();
 
