@@ -60,21 +60,22 @@ namespace Server.Controllers
             var user = from u in _dataContext.Users
                        where u.Username == username
                        select u;
-            if (user.Any())
+            if (user.Any() && user.First().ConfirmedEmail == 1)
                 return BadRequest();
 
             var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(password, new byte[] { 0xAA, 0xBB, 0xCC, 0xDD }, KeyDerivationPrf.HMACSHA256, 10000, 64));
 
-            var bytes = new byte[8];
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 
-            var rnd = new Random();
-            rnd.NextBytes(bytes);
+            var random = new Random();
+
+            var code = new string(Enumerable.Repeat(chars, 8).Select(s => s[random.Next(s.Length)]).ToArray());
 
             var from = new MailAddress("test_email_sender1@rambler.ru", "Confirm");
             var to = new MailAddress(email);
             var m = new MailMessage(from, to);
             m.Subject = "Confirm email";
-            m.Body = bytes.ToString();
+            m.Body = code;
             var smpt = new SmtpClient("smtp.rambler.ru", 25);
             smpt.Credentials = new NetworkCredential("test_email_sender1@rambler.ru", "123456789Abcd");
             try
@@ -85,11 +86,19 @@ namespace Server.Controllers
                 return BadRequest();
             }
 
-            _dataContext.Users.Add(new Models.User { Username = username,
-                                                     Email = email,
-                                                     PasswordHash = hashed,
-                                                     ConfirmedEmail = 0,
-                                                     Code = bytes.ToString()});
+            if(!user.Any())
+                _dataContext.Users.Add(new Models.User { Username = username,
+                                                         Email = email,
+                                                         PasswordHash = hashed,
+                                                         ConfirmedEmail = 0,
+                                                         Code = code});
+            else
+            {
+                var u = _dataContext.Users.Find(user.First().UserId);
+                if (u == null)
+                    return BadRequest();
+                u.Code = code;
+            }
             _dataContext.SaveChanges();
             return Ok();
         }
