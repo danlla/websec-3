@@ -145,7 +145,7 @@ namespace Server.Controllers
             if (result == null)
                 return NotFound();
 
-            return Ok(result);
+            return Ok(result.Take(100));
         }
 
         [Authorize]
@@ -179,7 +179,7 @@ namespace Server.Controllers
             if (!result.Any())
                 return NotFound();
 
-            return Ok(result.Take(50));
+            return Ok(result.Take(100));
         }
 
         [Authorize]
