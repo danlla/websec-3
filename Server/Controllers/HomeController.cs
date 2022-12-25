@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Server.DAL;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
 
@@ -27,7 +29,7 @@ namespace Server.Controllers
                        where u.Username == username
                        select u;
 
-            if (user.Count() == 0)
+            if (!user.Any())
                 return NotFound();
 
             var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(password, new byte[] { 0xAA, 0xBB, 0xCC, 0xDD }, KeyDerivationPrf.HMACSHA256, 10000, 64));
@@ -35,13 +37,14 @@ namespace Server.Controllers
             if (user.First().PasswordHash != hashed)
                 return BadRequest();
 
+            if(user.First().ConfirmedEmail == 0)
+                return BadRequest();
+
             var handler = new JwtSecurityTokenHandler();
 
             var securityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
             var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
 
-            //var identity = new ClaimsIdentity(new GenericIdentity(username),
-            //new[] { new Claim("user_id", user.First().UserId.ToString()) });
             var identity = new ClaimsIdentity(new Claim[] { new Claim(ClaimTypes.NameIdentifier, user.First().UserId.ToString()) });
             var token = handler.CreateJwtSecurityToken(subject: identity,
                                                        issuer: "localhost:7061",
@@ -57,12 +60,55 @@ namespace Server.Controllers
             var user = from u in _dataContext.Users
                        where u.Username == username
                        select u;
-            if (user.Count() != 0)
+            if (user.Any())
                 return BadRequest();
 
             var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(password, new byte[] { 0xAA, 0xBB, 0xCC, 0xDD }, KeyDerivationPrf.HMACSHA256, 10000, 64));
 
-            _dataContext.Users.Add(new Models.User { Username = username, Email = email, PasswordHash = hashed});
+            var bytes = new byte[8];
+
+            var rnd = new Random();
+            rnd.NextBytes(bytes);
+
+            var from = new MailAddress("test_email_sender1@rambler.ru", "Confirm");
+            var to = new MailAddress(email);
+            var m = new MailMessage(from, to);
+            m.Subject = "Confirm email";
+            m.Body = bytes.ToString();
+            var smpt = new SmtpClient("smtp.rambler.ru", 25);
+            smpt.Credentials = new NetworkCredential("test_email_sender1@rambler.ru", "123456789Abcd");
+            try
+            {
+                smpt.Send(m);
+            }catch(Exception)
+            {
+                return BadRequest();
+            }
+
+            _dataContext.Users.Add(new Models.User { Username = username,
+                                                     Email = email,
+                                                     PasswordHash = hashed,
+                                                     ConfirmedEmail = 0,
+                                                     Code = bytes.ToString()});
+            _dataContext.SaveChanges();
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("send")]
+        public IActionResult Send(string code, string username)
+        {
+            var users = from u in _dataContext.Users
+                       where u.Username == username
+                       select u;
+            var user = _dataContext.Users.Find(users.First().UserId);
+            if (user == null)
+                return BadRequest();
+
+            if (user.Code != code)
+                return BadRequest();
+
+            user.ConfirmedEmail = 1;
             _dataContext.SaveChanges();
             return Ok();
         }

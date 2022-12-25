@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Server.DAL;
 
@@ -58,8 +59,8 @@ namespace Server.Controllers
         {
             var id = Convert.ToInt32(User.Claims.First().Value);
             var user = from u in _context.Users
-                        where u.UserId == id
-                        select u;
+                       where u.UserId == id
+                       select u;
             return Ok(user.First().Username);
         }
 
@@ -110,6 +111,7 @@ namespace Server.Controllers
             return Ok();
         }
 
+
         [Authorize]
         [HttpPost]
         [Route("add_post")]
@@ -151,7 +153,7 @@ namespace Server.Controllers
         [Authorize]
         [HttpGet]
         [Route("user_posts")]
-        public IActionResult UserPosts(int idUser)
+        public IActionResult UserPosts()
         {
             var id = Convert.ToInt32(User.Claims.First().Value);
             var result = from p in _context.Posts
@@ -207,16 +209,25 @@ namespace Server.Controllers
                         where l.UserId == id && l.PostID == idPost
                         select l;
 
+            var exist = false;
             if (check.Any())
-                return BadRequest();
+                exist = true;
 
-            _context.Likes.Add(new Models.Like { PostID = idPost, UserId = id });
-            
+            if (!exist)
+                _context.Likes.Add(new Models.Like { PostID = idPost, UserId = id });
+            else
+            {
+                var p = _context.Likes.Find(check.First().LikeId);
+                if (p == null)
+                    return BadRequest();
+                _context.Likes.Remove(p);
+            }
+
             var post = from p in _context.Posts
                        where p.PostId == idPost
                        select p;
 
-            post.First().LikesCount += 1;
+            post.First().LikesCount += exist?1:-1;
 
             _context.SaveChanges();
 
@@ -229,7 +240,7 @@ namespace Server.Controllers
         public IActionResult CommentsPost(int postId)
         {
             var result = from c in _context.Comments
-                         where c.PostId==postId
+                         where c.PostId == postId
                          select new { c.PostId, c.Data, c.TimeCreate, c.User!.Username };
 
             if (!result.Any())
