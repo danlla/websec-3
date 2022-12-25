@@ -32,7 +32,7 @@ const Profile = observer(() => {
         }
       )
       fetch("https://localhost:7061/api/data/username",{method: 'GET', headers:{'Authorization': 'Bearer ' + user.token}})
-      .then(res => res.json())
+      .then(res => res.text())
       .then(
         (result) => {
           setUsername(result);
@@ -41,36 +41,34 @@ const Profile = observer(() => {
           setError(error);
         }
       )
-  }, [])
-  if (error) {
-    return <div>Ошибка: {error.message}</div>;
-  } else {
-    return (
-      <div>
-        <Card  className="p-4">
-        {username}
-        </Card>
-          <Button className="m-2" variant={"dark"} onClick={() => {navigate(ADD_POST_ROUTE)}}>Написать пост</Button>
-            <ul>
-            {posts.map(post => (
-            <Card className="p-4">
-            <li key={post.id}>
-                {post.username} {post.data} 
-                <div > 
-                {post.timeCreate} 
-                <div> 
-                    ♥ {post.likesCount}
-                </div>
-                    <Button className="m-2" variant={"dark"} onClick={() => {clicked(post.postId)}}>♥</Button>
-                    <Button className="m-2" variant={"dark"} onClick={() => {navigate(POST_ROUTE,{state: {id: post.postId}})}}>Открыть комментарии</Button>
-                </div>
-            </li>
-            </Card>
-            ))}
-            
-        </ul>
-      </div>
-    );
-  }
+  })
+
+  return (
+    <div>
+      <Card  className="p-4">
+      {username}
+      </Card>
+        <Button className="m-2" variant={"dark"} onClick={() => {navigate(ADD_POST_ROUTE)}}>Написать пост</Button>
+        {posts.lenght !== 0 &&
+          <ul>
+          {posts.map(post => (
+          <Card className="p-4">
+          <li key={post.id}>
+              {post.username} {post.data} 
+              <div > 
+              {post.timeCreate} 
+              <div> 
+                  ♥ {post.likesCount}
+              </div>
+                  <Button className="m-2" variant={"dark"} onClick={() => {clicked(post.postId)}}>♥</Button>
+                  <Button className="m-2" variant={"dark"} onClick={() => {navigate(POST_ROUTE,{state: {idPost: post.postId}})}}>Открыть комментарии</Button>
+              </div>
+          </li>
+          </Card>
+          ))}
+          </ul>
+      }
+    </div>
+  );
 });  
   export default Profile;

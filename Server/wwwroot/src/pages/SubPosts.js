@@ -46,7 +46,7 @@ const NewsFeed = observer(() => {
                 ♥ {post.likesCount}
               </div>
                 <Button className="m-2" variant={"dark"} onClick={() => {clicked(post.postId)}}>♥</Button>
-                <Button className="m-2" variant={"dark"} onClick={() => {navigate(POST_ROUTE,{state: {id: post.postId}})}}>Открыть комментарии</Button>
+                <Button className="m-2" variant={"dark"} onClick={() => {navigate(POST_ROUTE,{state: {idPost: post.postId}})}}>Открыть комментарии</Button>
                 <Button className="m-2" variant={"dark"} onClick={() => {navigate(OTHER_USER_PROFILE_ROUTE,{state: {id: post.userId}})}}>Открыть профиль</Button>
             </div>
           </li>

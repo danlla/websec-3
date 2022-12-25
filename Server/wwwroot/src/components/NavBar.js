@@ -14,7 +14,7 @@ const NavBar = observer( () => {
     return (
         <Navbar bg="dark" variant="dark">
             <Container>
-            <NavLink style={{color:"White"}} to={REGISTRATION_ROUTE}>Selfiegram</NavLink>
+            <NavLink style={{color:"White"}} to={REGISTRATION_ROUTE} onClick={() => {user.setIsAuth(false)}}>Selfiegram</NavLink>
             {user.isAuth ?
                 <Nav className="ml-auto" style={{color:'White'}}>
                     <Button className="m-2" variant={"outline-light"} onClick={() => navigate(PROFILE_ROUTE)}>Профиль</Button>

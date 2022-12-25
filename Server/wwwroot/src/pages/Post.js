@@ -12,13 +12,10 @@ const Post = observer(() => {
   const [post, setPost] = useState();
   const {user} = useContext(Context)
   const location = useLocation();
-  let id = location.state.id;
+  let id = location.state.idPost;
   
   async function clicked(data){
     let res = await fetch(`https://localhost:7061/api/data/comment_post?postId=${id}&data=${data}`,{method: 'POST', headers:{'Authorization': 'Bearer ' + user.token}})
-    if (res.status === 400){
-      alert("likes already exist")
-    }
   }
 
   useEffect(() => {
