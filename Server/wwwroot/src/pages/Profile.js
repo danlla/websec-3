@@ -15,7 +15,6 @@ const Profile = observer(() => {
 
   async function clicked(id){
     let res = await fetch(`https://localhost:7061/api/data/like_post?idPost=${id}`,{method: 'POST', headers:{'Authorization': 'Bearer ' + user.token}})
-    console.log(res)
     if (res.status === 400){
       alert("likes already exist")
     }

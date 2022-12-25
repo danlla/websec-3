@@ -18,7 +18,6 @@ const Subs = observer(() => {
       .then(
         (result) => {
           setSubs(result);
-          console.log(result)
         },
         (error) => {
           setError(error);
