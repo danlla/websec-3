@@ -1,17 +1,28 @@
 import React, { useState,useContext, useEffect } from 'react';
 import {observer} from "mobx-react-lite";
 import {Context} from "../index";
+import { useLocation } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import {Card} from "react-bootstrap";
-import { POST_ROUTE,ADD_POST_ROUTE } from "../utils/consts";
+import { POST_ROUTE } from "../utils/consts";
 import { useNavigate } from "react-router-dom";
 
-const Profile = observer(() => {
+const OtherProfile = observer(() => {
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState();
   const [username, setUsername] = useState('');
   const {user} = useContext(Context)
+  const location = useLocation();
+  let id = location.state.id;
   const navigate = useNavigate()
+
+  async function subscribe(){
+    let res = await fetch(`https://localhost:7061/api/data/subscribe?idSub=${id}`,{method: 'POST', headers:{'Authorization': 'Bearer ' + user.token}})
+    console.log(res)
+    if (res.status === 400){
+      alert("subscribe already exist")
+    }
+  }
 
   async function clicked(id){
     let res = await fetch(`https://localhost:7061/api/data/like_post?idPost=${id}`,{method: 'POST', headers:{'Authorization': 'Bearer ' + user.token}})
@@ -22,7 +33,7 @@ const Profile = observer(() => {
   }
 
   useEffect(() => {
-    fetch("https://localhost:7061/api/data/profile",{method: 'GET', headers:{'Authorization': 'Bearer ' + user.token}})
+    fetch(`https://localhost:7061/api/data/other_profile?userId=${id}`,{method: 'GET', headers:{'Authorization': 'Bearer ' + user.token}})
       .then(res => res.json())
       .then(
         (result) => {
@@ -32,7 +43,7 @@ const Profile = observer(() => {
           setError(error);
         }
       )
-      fetch("https://localhost:7061/api/data/username",{method: 'GET', headers:{'Authorization': 'Bearer ' + user.token}})
+      fetch(`https://localhost:7061/api/data/other_username?userId=${id}`,{method: 'GET', headers:{'Authorization': 'Bearer ' + user.token}})
       .then(res => res.json())
       .then(
         (result) => {
@@ -47,11 +58,9 @@ const Profile = observer(() => {
     return <div>Ошибка: {error.message}</div>;
   } else {
     return (
-      <div>
-        <Card  className="p-4">
-        {username}
-        </Card>
-          <Button className="m-2" variant={"dark"} onClick={() => {navigate(ADD_POST_ROUTE)}}>Написать пост</Button>
+        <div>
+            {username}
+            <Button className="m-2" variant={"dark"} onClick={() => {subscribe()}}>Подписаться</Button>
             <ul>
             {posts.map(post => (
             <Card className="p-4">
@@ -74,4 +83,4 @@ const Profile = observer(() => {
     );
   }
 });  
-  export default Profile;
+  export default OtherProfile;
