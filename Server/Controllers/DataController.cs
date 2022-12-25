@@ -245,6 +245,6 @@ namespace Server.Controllers
             _context.SaveChanges();
 
             return Ok();
-        }0
+        }
     }
 }
