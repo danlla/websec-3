@@ -42,7 +42,7 @@ const OtherProfile = observer(() => {
         }
       )
       fetch(`https://localhost:7061/api/data/other_username?userId=${id}`,{method: 'GET', headers:{'Authorization': 'Bearer ' + user.token}})
-      .then(res => res.json())
+      .then(res => res.text())
       .then(
         (result) => {
           setUsername(result);
@@ -51,14 +51,13 @@ const OtherProfile = observer(() => {
           setError(error);
         }
       )
-  }, [])
-  if (error) {
-    return <div>Ошибка: {error.message}</div>;
-  } else {
+  })
+
     return (
         <div>
             {username}
             <Button className="m-2" variant={"dark"} onClick={() => {subscribe()}}>Подписаться</Button>
+            {posts.length &&
             <ul>
             {posts.map(post => (
             <Card className="p-4">
@@ -70,15 +69,15 @@ const OtherProfile = observer(() => {
                     ♥ {post.likesCount}
                 </div>
                     <Button className="m-2" variant={"dark"} onClick={() => {clicked(post.postId)}}>♥</Button>
-                    <Button className="m-2" variant={"dark"} onClick={() => {navigate(POST_ROUTE,{state: {id: post.postId}})}}>Открыть комментарии</Button>
+                    <Button className="m-2" variant={"dark"} onClick={() => {navigate(POST_ROUTE,{state: {idPost: post.postId}})}}>Открыть комментарии</Button>
                 </div>
             </li>
             </Card>
             ))}
             
-        </ul>
+        </ul>}
       </div>
     );
   }
-});  
+);  
   export default OtherProfile;

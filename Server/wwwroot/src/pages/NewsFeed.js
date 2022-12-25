@@ -31,9 +31,11 @@ const NewsFeed = observer(() => {
         }
       )
   })
-  if (error) {
-    return <div>Ошибка: {error.message}</div>;
-  } else {
+  if (!posts.length){
+    return <Card className="p-4">
+      Нет постов
+    </Card>
+  }
     return ( 
     <ul>
         {posts.map(post => (
@@ -46,7 +48,7 @@ const NewsFeed = observer(() => {
                 ♥ {post.likesCount}
               </div>
                 <Button className="m-2" variant={"dark"} onClick={() => {clicked(post.postId)}}>♥</Button>
-                <Button className="m-2" variant={"dark"} onClick={() => {navigate(POST_ROUTE,{state: {id: post.postId}})}}>Открыть комментарии</Button>
+                <Button className="m-2" variant={"dark"} onClick={() => {navigate(POST_ROUTE,{state: {idPost: post.postId}})}}>Открыть комментарии</Button>
                 <Button className="m-2" variant={"dark"} onClick={() => {navigate(OTHER_USER_PROFILE_ROUTE,{state: {id: post.userId}})}}>Открыть профиль</Button>
             </div>
           </li>
@@ -54,8 +56,7 @@ const NewsFeed = observer(() => {
         ))}
         
       </ul>
-      
     );
   }
-});  
-  export default NewsFeed;
+);  
+export default NewsFeed;
