@@ -3,7 +3,7 @@ import {observer} from "mobx-react-lite";
 import {Context} from "../index";
 import Button from "react-bootstrap/Button";
 import {Card} from "react-bootstrap";
-import { POST_ROUTE, OTHER_USER_PROFILE_ROUTE } from "../utils/consts";
+import { POST_ROUTE, OTHER_USER_PROFILE_ROUTE,SUB_POSTS_ROUTE } from "../utils/consts";
 import { useNavigate } from "react-router-dom";
 
 const NewsFeed = observer(() => {
@@ -20,7 +20,7 @@ const NewsFeed = observer(() => {
   }
 
   useEffect(() => {
-    fetch("https://localhost:7061/api/data/random_post",{method: 'GET', headers:{'Authorization': 'Bearer ' + user.token}})
+    fetch("https://localhost:7061/api/data/subs_posts",{method: 'GET', headers:{'Authorization': 'Bearer ' + user.token}})
       .then(res => res.json())
       .then(
         (result) => {
