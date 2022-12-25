@@ -12,7 +12,6 @@ function App() {
       <Helmet>
                 <meta charSet="utf-8" />
                 <title>Selfiegram</title>
-                <link rel="canonical" href="http://mysite.com/example" />
             </Helmet>
       <AppRouter />
     </BrowserRouter>
