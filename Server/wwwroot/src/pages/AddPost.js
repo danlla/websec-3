@@ -2,7 +2,7 @@ import Button from "react-bootstrap/Button";
 import React, { useState,useContext } from 'react';
 import {Card, Container, Form} from "react-bootstrap";
 import { PROFILE_ROUTE } from "../utils/consts";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {observer} from "mobx-react-lite";
 import {Context} from "../index";
 
@@ -10,9 +10,10 @@ const AddPost = observer(() => {
   const {user} = useContext(Context)
   const [data, setData] = useState('')
   const navigate = useNavigate()
+  
 
   async function clicked(){ 
-      let res = await fetch(`https://localhost:7061/api/data/add_post?data=${data}`,{method: 'POST', headers:{'Authorization': 'Bearer ' + user.token}})
+      let res = await fetch(`https://localhost:7061/api/data/add_post?data=${data}`, {method: 'POST', headers:{'Authorization': 'Bearer ' + user.token}})
       navigate(PROFILE_ROUTE)
     }
 

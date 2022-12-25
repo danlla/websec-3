@@ -28,12 +28,10 @@ const Auth = observer(() => {
       let token = await res.text()
       user.setToken(token)
       user.setIsAuth(true)
-      console.log(user.token)
       navigate(PROFILE_ROUTE)
     }
     else {
       let res = await fetch(`https://localhost:7061/register?email=${email}&username=${username}&password=${password}`,{method: 'POST'}) 
-      console.log(res)
       if (res.status === 400){
         setError("invalid login")
       }
