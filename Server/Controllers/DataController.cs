@@ -252,12 +252,12 @@ namespace Server.Controllers
         [Authorize]
         [HttpPost]
         [Route("comment_post")]
-        public IActionResult CommentPost(int postId, string data)
+        async public Task<IActionResult> CommentPost(int postId, string data)
         {
             var id = Convert.ToInt32(User.Claims.First().Value);
             _context.Comments.Add(new Models.Comment { UserId = id, Data = data, PostId = postId, TimeCreate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") });
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return Ok();
         }
